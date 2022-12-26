@@ -1,0 +1,5 @@
+celery==5.2.7
+redis==4.3.4
+# Down here we have all the current brokers api's
+python-binance==1.0.16
+flower==1.2.0
