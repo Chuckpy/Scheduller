@@ -1,7 +1,6 @@
 from core.utils.inspect import method_has_no_args, replace_query_param, remove_query_param
 from fastapi import HTTPException, status
 from functools import cached_property
-from pydantic import BaseModel, Field
 from math import ceil
 import collections.abc
 import inspect
@@ -23,18 +22,6 @@ class PageNotAnInteger(HTTPException):
 
 class EmptyPage(HTTPException):
     pass
-
-
-class PageSchema(BaseModel):
-
-    page_number:int = 1
-    next_page_url: str | None = None
-    previous_page_url: str | None = None
-    per_page: int = 0
-    from_num: int = 0
-    to_num: int = 0
-    count:int
-    data:list = []
 
 
 class Paginator:
@@ -88,16 +75,8 @@ class Paginator:
         if top + self.orphans >= self.count:
             top = self.count
         page = self._get_page(self.object_list[bottom:top], number, self)
-        return PageSchema(
-            data = page.object_list,
-            page_number = page.number,
-            per_page=len(page.object_list),
-            count = page.paginator.count,
-            from_num=page.start_index(),
-            to_num=page.end_index(),
-            next_page_url = page.get_next_link(),
-            previous_page_url = page.get_previous_link(),
-        ).dict()
+
+        return page
 
     def _get_page(self, *args, **kwargs):
         """

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date
 from sqlalchemy.orm import relationship
 
 from .base_mixins import BaseMixin
@@ -8,7 +8,7 @@ class TaskGroup(BaseMixin):
 
     __tablename__ = "task_group"
     
-    id = Column(Integer, ForeignKey("core__base_mixin.id"), primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id"), primary_key=True, index=True)
     title = Column(String(255))
 
     def __str__(self):
@@ -28,7 +28,7 @@ class Task(BaseMixin):
     
     id = Column(
         Integer, 
-        ForeignKey("core__base_mixin.id") ,
+        ForeignKey("core_base_mixin.id") ,
         primary_key=True, 
         index=True
         )
@@ -43,6 +43,11 @@ class Task(BaseMixin):
         "User", 
         back_populates="tasks", 
         foreign_keys=[user_id]
+        )
+
+    deadline = Column(
+        Date,
+        nullable=True,
         )
 
     description = Column(
@@ -76,7 +81,7 @@ class List(BaseMixin):
     
     __tablename__ = "list"
 
-    id = Column(Integer, ForeignKey("core__base_mixin.id") ,primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
     task_id = Column(Integer, ForeignKey("task.id"))
     task = relationship("Task", backref="lists", foreign_keys=[task_id])
 
@@ -95,7 +100,7 @@ class ListTextLine(BaseMixin):
     
     __tablename__ = "list_text_line"
 
-    id = Column(Integer, ForeignKey("core__base_mixin.id") ,primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
     content = Column(String(500))
     status = Column(Boolean, default=False, nullable=True)
     list_id = Column(Integer, ForeignKey("list.id"))
@@ -116,8 +121,7 @@ class TextLine(BaseMixin):
     
     __tablename__ = "text_line"
 
-
-    id = Column(Integer, ForeignKey("core__base_mixin.id") ,primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id"), primary_key=True, index=True)
     content = Column(String(500))
     task_id = Column(Integer, ForeignKey("task.id"))
     task = relationship("Task", backref="text_lines", foreign_keys=[task_id])

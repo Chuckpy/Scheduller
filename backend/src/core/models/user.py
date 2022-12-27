@@ -10,7 +10,7 @@ class Group(BaseMixin):
     __tablename__ = "group"
 
 
-    id = Column(Integer, ForeignKey("core__base_mixin.id"),primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id"),primary_key=True, index=True)
     name = Column(String(255))
 
     def __str__(self):
@@ -27,7 +27,7 @@ class User(BaseMixin):
 
     __tablename__ = "users"
 
-    id = Column(Integer, ForeignKey("core__base_mixin.id") ,primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
     username = Column(String(255), unique=True, nullable=False)
     first_name = Column(String(255))
     last_name = Column(String(255))

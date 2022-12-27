@@ -6,7 +6,7 @@ from database import Base
 
 class BaseMixin(Base):
 
-    __tablename__ = "core__base_mixin"
+    __tablename__ = "core_base_mixin"
 
     
     id = Column(Integer, primary_key=True, index=True)
@@ -16,7 +16,7 @@ class BaseMixin(Base):
     is_active = Column(Boolean, default=True)
 
     __mapper_args__ = {
-        "polymorphic_identity": "core__base_mixin",
+        "polymorphic_identity": "core_base_mixin",
         "polymorphic_on": typing,
     }
 
