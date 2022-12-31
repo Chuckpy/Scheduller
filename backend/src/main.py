@@ -6,8 +6,6 @@ from core.apps.tasks.app import router as tasks_router
 import uvicorn
 
 
-
-
 def get_application() -> FastAPI:
 
     origins = [

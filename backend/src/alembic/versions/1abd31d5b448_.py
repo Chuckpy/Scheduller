@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 56b6ebab2095
+Revision ID: 1abd31d5b448
 Revises: 
-Create Date: 2022-12-26 23:16:57.602632
+Create Date: 2022-12-30 21:21:23.278934
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '56b6ebab2095'
+revision = '1abd31d5b448'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -68,6 +68,7 @@ def upgrade() -> None:
     op.create_table('task',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('deadline', sa.Date(), nullable=True),
     sa.Column('description', sa.String(length=255), nullable=True),
     sa.Column('task_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['core_base_mixin.id'], ),

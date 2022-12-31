@@ -1,8 +1,8 @@
-from core.models.tasks import Task
+from core.models.tasks import Task, List, TextLine, ListTextLine
 from core.apps.auth.services.user_services import UserController
 from core.utils.paginator import Paginator
 from core.schemas.page_schema import PageSchema
-from core.schemas.task_schema import TaskDisplaySchema
+from core.schemas.task_schema import TaskDisplaySchema, ListSchema, TextLineSchema, ListTextLineSchema
 from fastapi import Request, Depends, Header
 from database.db import get_session
 from sqlalchemy.orm import Session
@@ -21,7 +21,7 @@ class TaskController(UserController):
         request: Request,
         authorization: str | None = Header(),
         session: Session = Depends(get_session),
-        limit: int = 10,
+        limit: int = 100,
         per_page: int = 100,
         page: int = 1,
     ):
@@ -34,6 +34,22 @@ class TaskController(UserController):
         self.page = page
         self._paginator = Paginator
 
+    def get_retail_task(self, task):
+        
+        task_detailed = TaskDisplaySchema.parse_obj(task.__dict__)        
+        task_detailed.lists = [ListSchema.parse_obj(list.__dict__) for list in task.lists]
+        
+        list_text_lines = [list.list_text_lines for list in task.lists]
+
+        count = 0
+        for task_db, list_text_lines in zip(task_detailed.lists, list_text_lines):
+            task_detailed.lists[count] = [ListTextLineSchema.parse_obj(text_line.__dict__) for text_line in list_text_lines]
+            count += 1
+
+        task_detailed.text_lines = [TextLineSchema.parse_obj(text_line.__dict__) for text_line in task.text_lines]
+
+        return task_detailed
+
     def list_tasks(self):
         user_id = self._get_user(self.authorization).id        
         tasks = (
@@ -42,28 +58,110 @@ class TaskController(UserController):
             .limit(self.limit)
             .all()
         )
-        page = self._paginator(tasks, self.per_page, self.request).page(self.page)
+        page = self._paginator(
+            tasks, 
+            self.per_page, 
+            self.request)\
+                .page(self.page)
+
         paged_data = TaskPaged(
             page_number = page.number,
             per_page = len(page.object_list),
-            count = page.paginator.count,
+            count = len(tasks),
             from_num = page.start_index(),
             to_num = page.end_index(),
             next_page_url = page.get_next_link(),
             previous_page_url = page.get_previous_link(),
-            data = [TaskDisplaySchema.parse_obj(obj.__dict__) for obj in page.object_list],
+            data = [
+                self.get_retail_task(obj)
+                for obj in page.object_list
+                ],
         ).dict()
+
         return paged_data
 
+    def create_lists_text_lines(self, list_text_line_form, list_id: int, user_id = None):
+        if not user_id :
+            user_id = self._get_user(self.authorization).id
+
+        list_text_lines = []
+
+        for list_text_line in list_text_line_form:
+            list_text_line["list_id"] = list_id
+            db_list_text_line = ListTextLine(**list_text_line)
+            self.session.add(db_list_text_line)
+            self.session.commit()
+            self.session.refresh(db_list_text_line)
+            list_text_lines.append(db_list_text_line)
+
+        return list_text_lines
+
+    def create_lists(self, list_form, task_id: int, user_id = None):
+        if not user_id :
+            user_id = self._get_user(self.authorization).id 
+
+        lists = []
+
+        for list in list_form:
+
+            if "list_text_lines" in list:
+                self.list_text_lines = list.pop("list_text_lines")
+
+            list["task_id"] = task_id
+            db_list = List(**list)
+            self.session.add(db_list)
+            self.session.commit()
+            self.session.refresh(db_list)
+            lists.append(db_list)
+            
+        if self.list_text_lines:
+            self.create_lists_text_lines(self.list_text_lines, db_list.id, user_id)
+
+        return lists
+
+    def create_text_lines(self, text_line_form, task_id: int, user_id = None):
+        if not user_id :
+            user_id = self._get_user(self.authorization).id
+
+        text_lines = []
+        for text_line in text_line_form:
+            text_line["task_id"] = task_id
+            db_text_line = TextLine(**text_line)
+            self.session.add(db_text_line)
+            self.session.commit()
+            self.session.refresh(db_text_line)
+            text_lines.append(db_text_line)
+
+        return text_lines
+
     def create_task(self, task_form):
+        self.text_lines = []
+        self.lists = []
+        self.list_text_lines = []
+
         user_id = self._get_user(self.authorization).id
+
+
         task_form_dict = task_form.dict(exclude_none=True)
+        to_return = task_form_dict.copy()
         task_form_dict["user_id"] = user_id
+
+        if "text_lines" in task_form_dict.keys():
+            self.text_lines = task_form_dict.pop("text_lines")
+
+        if "lists" in task_form_dict.keys():
+            self.lists = task_form_dict.pop("lists")
+        
         db_task = self.model(**(task_form_dict))
-        # TODO : possible to create lists and text lists by nested serialized data
 
         self.session.add(db_task)
         self.session.commit()
         self.session.refresh(db_task)
 
-        return db_task
+        if self.text_lines:
+            self.create_text_lines(self.text_lines, db_task.id, user_id)
+
+        if self.lists:
+            self.create_lists(self.lists, db_task.id, user_id)
+
+        return to_return
