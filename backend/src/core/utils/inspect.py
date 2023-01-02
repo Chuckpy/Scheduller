@@ -54,7 +54,7 @@ def replace_query_param(url, key, val):
     """
     (scheme, netloc, path, query, fragment) = parse.urlsplit(force_str(url))
     query_dict = parse.parse_qs(query, keep_blank_values=True)
-    _key = list(key.keys())[0]
+    _key = list(key.keys())[0] if key else "page"
     query_dict[force_str(_key)] = [force_str(val)]
     query = parse.urlencode(sorted(query_dict.items()), doseq=True)
     return parse.urlunsplit((scheme, netloc, path, query, fragment))

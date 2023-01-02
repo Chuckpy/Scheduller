@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Date
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from .base_mixins import BaseMixin
@@ -46,12 +46,13 @@ class Task(BaseMixin):
         )
 
     deadline = Column(
-        Date,
+        DateTime,
         nullable=True,
         )
 
     description = Column(
-        String(255)
+        String(255),
+        nullable=False,
         )
 
     task_group_id = Column(
@@ -82,7 +83,11 @@ class List(BaseMixin):
     __tablename__ = "list"
 
     id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
-    task_id = Column(Integer, ForeignKey("task.id"))
+    task_id = Column(
+        Integer, 
+        ForeignKey("task.id"),        
+        nullable=False,
+        )
     task = relationship("Task", backref="lists", foreign_keys=[task_id])
 
     def __str__(self):
@@ -102,8 +107,16 @@ class ListTextLine(BaseMixin):
 
     id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
     content = Column(String(500))
-    status = Column(Boolean, default=False, nullable=True)
-    list_id = Column(Integer, ForeignKey("list.id"))
+    status = Column(
+        Boolean, 
+        default=False, 
+        nullable=True
+        )
+    list_id = Column(
+        Integer, 
+        ForeignKey("list.id"),        
+        nullable=False,
+        )
     list = relationship("List", backref="list_text_lines", foreign_keys=[list_id])
 
     def __str__(self):

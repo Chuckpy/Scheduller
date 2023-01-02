@@ -3,7 +3,7 @@ from core.apps.auth.services.user_services import UserController
 from core.utils.paginator import Paginator
 from core.schemas.page_schema import PageSchema
 from core.schemas.task_schema import TaskDisplaySchema, ListSchema, TextLineSchema, ListTextLineSchema
-from fastapi import Request, Depends, Header
+from fastapi import Request, Depends, Header, HTTPException
 from database.db import get_session
 from sqlalchemy.orm import Session
 
@@ -22,7 +22,7 @@ class TaskController(UserController):
         authorization: str | None = Header(),
         session: Session = Depends(get_session),
         limit: int = 100,
-        per_page: int = 100,
+        per_page: int = 10,
         page: int = 1,
     ):
 
@@ -34,17 +34,23 @@ class TaskController(UserController):
         self.page = page
         self._paginator = Paginator
 
-    def get_retail_task(self, task):
-        
+    def get_retail_task(self, task:Task | int = False):
+
+        if type(task) == int:
+            task = self.session.query(self.model)\
+                .filter(self.model.id == self.request.path_params\
+                .get("task_id")).first()
+
+            if not task:
+                raise HTTPException(status_code = 404, detail = "Task not found")
+
         task_detailed = TaskDisplaySchema.parse_obj(task.__dict__)        
         task_detailed.lists = [ListSchema.parse_obj(list.__dict__) for list in task.lists]
         
         list_text_lines = [list.list_text_lines for list in task.lists]
 
-        count = 0
-        for task_db, list_text_lines in zip(task_detailed.lists, list_text_lines):
-            task_detailed.lists[count] = [ListTextLineSchema.parse_obj(text_line.__dict__) for text_line in list_text_lines]
-            count += 1
+        for index, list_text_lines in enumerate(list_text_lines):
+            task_detailed.lists[index] = [ListTextLineSchema.parse_obj(text_line.__dict__) for text_line in list_text_lines]
 
         task_detailed.text_lines = [TextLineSchema.parse_obj(text_line.__dict__) for text_line in task.text_lines]
 
