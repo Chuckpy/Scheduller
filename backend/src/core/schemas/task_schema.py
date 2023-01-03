@@ -32,7 +32,7 @@ class TextLineSchema(BaseModel):
         orm_mode = True
 
 
-class TaskCreateSchema(BaseModel):
+class TaskBaseSchema(BaseModel):
     description: str = ""
     deadline: datetime = None
 

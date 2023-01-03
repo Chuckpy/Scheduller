@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 1abd31d5b448
+Revision ID: 4ea0cf4797ec
 Revises: 
-Create Date: 2022-12-30 21:21:23.278934
+Create Date: 2023-01-03 19:16:27.844144
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1abd31d5b448'
+revision = '4ea0cf4797ec'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -68,8 +68,8 @@ def upgrade() -> None:
     op.create_table('task',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('deadline', sa.Date(), nullable=True),
-    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('deadline', sa.DateTime(), nullable=True),
+    sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('task_group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['id'], ['core_base_mixin.id'], ),
     sa.ForeignKeyConstraint(['task_group_id'], ['task_group.id'], ),
@@ -79,7 +79,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_task_id'), 'task', ['id'], unique=False)
     op.create_table('list',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('task_id', sa.Integer(), nullable=True),
+    sa.Column('task_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['id'], ['core_base_mixin.id'], ),
     sa.ForeignKeyConstraint(['task_id'], ['task.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -98,7 +98,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.String(length=500), nullable=True),
     sa.Column('status', sa.Boolean(), nullable=True),
-    sa.Column('list_id', sa.Integer(), nullable=True),
+    sa.Column('list_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['id'], ['core_base_mixin.id'], ),
     sa.ForeignKeyConstraint(['list_id'], ['list.id'], ),
     sa.PrimaryKeyConstraint('id')

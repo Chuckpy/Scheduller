@@ -2,7 +2,7 @@ from core.models.tasks import Task, List, TextLine, ListTextLine
 from core.apps.auth.services.user_services import UserController
 from core.utils.paginator import Paginator
 from core.schemas.page_schema import PageSchema
-from core.schemas.task_schema import TaskDisplaySchema, ListSchema, TextLineSchema, ListTextLineSchema
+from core.schemas.task_schema import TaskDisplaySchema, ListSchema, TextLineSchema, ListTextLineSchema, TaskCreateSchema, TaskBaseSchema
 from fastapi import Request, Depends, Header, HTTPException
 from database.db import get_session
 from sqlalchemy.orm import Session
@@ -34,15 +34,20 @@ class TaskController(UserController):
         self.page = page
         self._paginator = Paginator
 
+    def get_task(self, task_id: int= None):
+
+        task = self.session.query(self.model)\
+            .filter(self.model.id==task_id).first()
+
+        if task :
+            return task
+        
+        raise HTTPException(status_code = 404, detail = "Task not found")
+
     def get_retail_task(self, task:Task | int = False):
 
         if type(task) == int:
-            task = self.session.query(self.model)\
-                .filter(self.model.id == self.request.path_params\
-                .get("task_id")).first()
-
-            if not task:
-                raise HTTPException(status_code = 404, detail = "Task not found")
+            task = self.get_task(task)
 
         task_detailed = TaskDisplaySchema.parse_obj(task.__dict__)        
         task_detailed.lists = [ListSchema.parse_obj(list.__dict__) for list in task.lists]
@@ -140,7 +145,7 @@ class TaskController(UserController):
 
         return text_lines
 
-    def create_task(self, task_form):
+    def create_task(self, task_form: TaskCreateSchema):
         self.text_lines = []
         self.lists = []
         self.list_text_lines = []
@@ -171,3 +176,12 @@ class TaskController(UserController):
             self.create_lists(self.lists, db_task.id, user_id)
 
         return to_return
+
+    def update_task(self, task_id: int, task_form: TaskBaseSchema):
+        
+        task = self.get_task(task_id)
+
+        task_form_dict = task_form.dict(exclude_none=True)
+        
+        task_query = self.session.query(task.__class__).filter(task.__class__.id == task_id)
+        task_query.update(task_form_dict)
