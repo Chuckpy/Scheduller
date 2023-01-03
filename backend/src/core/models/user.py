@@ -9,8 +9,7 @@ class Group(BaseMixin):
 
     __tablename__ = "group"
 
-
-    id = Column(Integer, ForeignKey("core_base_mixin.id"),primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id"), primary_key=True, index=True)
     name = Column(String(255))
 
     def __str__(self):
@@ -23,11 +22,12 @@ class Group(BaseMixin):
         "polymorphic_identity": "group",
     }
 
+
 class User(BaseMixin):
 
     __tablename__ = "users"
 
-    id = Column(Integer, ForeignKey("core_base_mixin.id") ,primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("core_base_mixin.id"), primary_key=True, index=True)
     username = Column(String(255), unique=True, nullable=False)
     first_name = Column(String(255))
     last_name = Column(String(255))
@@ -37,11 +37,11 @@ class User(BaseMixin):
     group_id = Column(Integer, ForeignKey("group.id"))
     group = relationship("Group", backref="users", foreign_keys=[group_id])
     tasks = relationship(
-        "Task", 
+        "Task",
         back_populates="user",
-        cascade = "all, delete",
-        foreign_keys=[Task.user_id]
-        )
+        cascade="all, delete",
+        foreign_keys=[Task.user_id],
+    )
 
     def __str__(self):
         return f"User #{self.id} - {self.first_name}"
@@ -51,4 +51,4 @@ class User(BaseMixin):
 
     __mapper_args__ = {
         "polymorphic_identity": "users",
-        }
+    }

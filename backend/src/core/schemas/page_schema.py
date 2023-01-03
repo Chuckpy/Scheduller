@@ -2,8 +2,8 @@ from pydantic import BaseModel
 
 
 class PageSchema(BaseModel):
-    
-    page_number:int = 1
+
+    page_number: int = 1
     next_page_url: str | None = None
     previous_page_url: str | None = None
     per_page: int = 0

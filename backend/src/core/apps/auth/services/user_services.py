@@ -1,5 +1,10 @@
 from core.models import User
-from core.schemas.user_schema import Token, UserRegisterSchema, UserLoginSchema, UserUpdateSchema
+from core.schemas.user_schema import (
+    Token,
+    UserRegisterSchema,
+    UserLoginSchema,
+    UserUpdateSchema,
+)
 from database.db import get_session
 from core.models.base_mixins import BaseMixin
 from datetime import datetime, timedelta
@@ -8,7 +13,6 @@ from jose import JWTError, ExpiredSignatureError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import with_polymorphic, selectin_polymorphic
-
 
 
 class UserController:
@@ -37,9 +41,12 @@ class UserController:
     def _find_user_by_username(self, username):
 
         manager_poly = with_polymorphic(BaseMixin, [User])
-        db_user = self.session.query(User).options(
-            selectin_polymorphic(User, [manager_poly])
-        ).filter(User.username == username).first()
+        db_user = (
+            self.session.query(User)
+            .options(selectin_polymorphic(User, [manager_poly]))
+            .filter(User.username == username)
+            .first()
+        )
 
         if db_user:
             return db_user
@@ -64,7 +71,9 @@ class UserController:
         if not db_user:
             raise credentials_exception
 
-        if not self._verify_password(self.form_data.hashed_password, db_user.hashed_password):
+        if not self._verify_password(
+            self.form_data.hashed_password, db_user.hashed_password
+        ):
             raise credentials_exception
 
         form_data = self.form_data.dict()
@@ -126,6 +135,7 @@ class UserToken(UserController):
     def user(self):
         return self.get_user()
 
+
 class UserUpdate(UserController):
     def __init__(
         self,
@@ -182,7 +192,9 @@ class UserRegister(UserController):
             )
 
         serialized_data = self.form_data.dict(exclude_none=True)
-        serialized_data["hashed_password"] = self._get_password_hash(serialized_data["hashed_password"])
+        serialized_data["hashed_password"] = self._get_password_hash(
+            serialized_data["hashed_password"]
+        )
 
         db_user = self.model(**serialized_data)
         self.session.add(db_user)

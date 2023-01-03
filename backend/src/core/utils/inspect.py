@@ -31,7 +31,6 @@ def _get_func_parameters(func, remove_first):
     return parameters
 
 
-
 def _get_callable_parameters(meth_or_func):
     is_method = inspect.ismethod(meth_or_func)
     func = meth_or_func.__func__ if is_method else meth_or_func
@@ -44,7 +43,6 @@ def method_has_no_args(meth):
         [p for p in _get_callable_parameters(meth) if p.kind == p.POSITIONAL_OR_KEYWORD]
     )
     return count == 0 if inspect.ismethod(meth) else count == 1
-
 
 
 def replace_query_param(url, key, val):

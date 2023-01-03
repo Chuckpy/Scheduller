@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends
 
 from core.schemas.user_schema import UserSchema
-from core.apps.auth.services.user_services import UserLogin, UserRegister, UserToken, UserUpdate
+from core.apps.auth.services.user_services import (
+    UserLogin,
+    UserRegister,
+    UserToken,
+    UserUpdate,
+)
 
 
 router = APIRouter(
-    prefix="/auth", 
-    tags=["auth"], 
-    responses={200: {"Bearer": "access token"}}
+    prefix="/auth", tags=["auth"], responses={200: {"Bearer": "access token"}}
 )
 
 

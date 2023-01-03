@@ -23,7 +23,7 @@ def get_application() -> FastAPI:
         allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"]
+        allow_headers=["*"],
     )
 
     return app
@@ -40,9 +40,7 @@ async def read_root(request: Request):
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host="0.0.0.0", 
+        host="0.0.0.0",
         port=int(getenv("PORT")),
-        reload=getenv("DEBUG",False)
+        reload=getenv("DEBUG", False),
     )
-
-

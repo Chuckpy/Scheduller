@@ -45,7 +45,7 @@ class TaskDisplaySchema(TaskSchema):
 
 
 class TaskCreateSchema(TaskSchema):
-    deadline: datetime  = None
+    deadline: datetime = None
     lists: list[ListSchema] | None = None
     text_lines: list[TextLineSchema] | None = None
 

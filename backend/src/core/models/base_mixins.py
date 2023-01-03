@@ -8,7 +8,6 @@ class BaseMixin(Base):
 
     __tablename__ = "core_base_mixin"
 
-    
     id = Column(Integer, primary_key=True, index=True)
     typing = Column(String(50))
     created = Column(DateTime(timezone=True), server_default=func.now())
