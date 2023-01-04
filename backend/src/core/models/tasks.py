@@ -37,7 +37,7 @@ class Task(BaseMixin):
     user = relationship("User", back_populates="tasks", foreign_keys=[user_id])
 
     deadline = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
     )
 

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from .tasks import Task
+from .cash_flow import CashFlow
 
 from .base_mixins import BaseMixin
 
@@ -41,6 +42,12 @@ class User(BaseMixin):
         back_populates="user",
         cascade="all, delete",
         foreign_keys=[Task.user_id],
+    )
+    cash_flows = relationship(
+        "CashFlow",
+        back_populates="user",
+        cascade="all, delete",
+        foreign_keys=[CashFlow.user_id],
     )
 
     def __str__(self):
