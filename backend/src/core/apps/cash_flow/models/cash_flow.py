@@ -1,9 +1,10 @@
-import enum
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Float, Enum
-from sqlalchemy_utils.types.choice import ChoiceType
+from database.base_class import Base
+from sqlalchemy import Boolean, Column, ForeignKey, String, DateTime, Float, Enum
+from sqlalchemy_utils import UUIDType
 from sqlalchemy.orm import relationship
-
-from .base_mixins import BaseMixin
+from sqlalchemy.sql import func
+from uuid import uuid4
+import enum
 
 
 class CashFlowType(enum.Enum):
@@ -11,16 +12,27 @@ class CashFlowType(enum.Enum):
     exit = 2
 
 
-class CashFlow(BaseMixin):
+class CashFlow(Base):
     
     __tablename__ = "core_cash_flow"
 
     id = Column(
-        Integer, 
-        ForeignKey("core_base_mixin.id"), 
-        primary_key=True, 
-        index=True,
+        UUIDType(binary=False),
+        primary_key=True,
+        default=uuid4()
+    )
+
+    created = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
         )
+
+    updated = Column(
+        DateTime(timezone=True), 
+        onupdate=func.now()
+        )
+
+    is_active = Column(Boolean, default=True)
     
     deadline = Column(
         DateTime(timezone=True),
@@ -71,5 +83,4 @@ class CashFlow(BaseMixin):
         return f"Cash Flow #{self.id}"
 
     __mapper_args__ = {
-        "polymorphic_identity": "core_cash_flow",
     }

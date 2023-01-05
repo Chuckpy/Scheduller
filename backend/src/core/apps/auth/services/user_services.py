@@ -1,4 +1,4 @@
-from core.models import User
+from core.apps.auth.models import User
 from core.schemas.user_schema import (
     Token,
     UserRegisterSchema,
@@ -6,7 +6,6 @@ from core.schemas.user_schema import (
     UserUpdateSchema,
 )
 from database.db import get_session
-from core.models.base_mixins import BaseMixin
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends, Header
 from jose import JWTError, ExpiredSignatureError, jwt
@@ -40,10 +39,8 @@ class UserController:
 
     def _find_user_by_username(self, username):
 
-        manager_poly = with_polymorphic(BaseMixin, [User])
         db_user = (
             self.session.query(User)
-            .options(selectin_polymorphic(User, [manager_poly]))
             .filter(User.username == username)
             .first()
         )

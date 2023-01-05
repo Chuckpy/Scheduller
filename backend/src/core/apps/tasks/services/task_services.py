@@ -1,4 +1,4 @@
-from core.models.tasks import Task, List, TextLine, ListTextLine
+from core.apps.tasks.models import Task, List, TextLine, ListTextLine
 from core.apps.auth.services.user_services import UserController
 from core.utils.paginator import Paginator
 from core.schemas.page_schema import PageSchema

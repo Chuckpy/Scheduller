@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from os import getenv
 from core.apps.auth.app import router as auth_router
 from core.apps.tasks.app import router as tasks_router
+from core.apps.chat.app import router as chat_router
 import uvicorn
 
 
@@ -17,6 +18,7 @@ def get_application() -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(tasks_router)
+    app.include_router(chat_router)
 
     app.add_middleware(
         CORSMiddleware,
