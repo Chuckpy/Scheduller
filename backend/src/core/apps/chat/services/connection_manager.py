@@ -4,18 +4,39 @@ from fastapi import WebSocket
 class ConnectionManager:
     def __init__(self):
         self.connections: dict[str, WebSocket] = {}
-        self.active_connections: list[WebSocket] = []
+        self.generator = self.get_notification_generator()
 
-    async def connect(self, websocket: WebSocket):
+    async def get_notification_generator(self):
+        while True:
+            message = yield
+            await self._notify(message)
+
+    async def push(self, message):
+        print(message)
+        await self.generator.asend(message)
+
+    async def connect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.connections.keys():
+            await self.push("User already registered")
+
         await websocket.accept()
-        self.active_connections.append(websocket)
+        self.connections[user_id] = websocket
+        await self.push("User connected")
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+    async def remove(self, websocket: WebSocket, user_id: str):
+        if user_id in self.connections:
+            self.connections.pop(user_id)
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
+    async def _notify(self, message):  # Response
+        living_connections = {}
+        keys = list(self.connections.keys())
+
+        for user in keys:
+            websocket = self.connections.pop(user)
+            await websocket.send_text(message)
+            living_connections[user] = websocket
+
+        self.connections = living_connections
 
     async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
+        await self.push(message)

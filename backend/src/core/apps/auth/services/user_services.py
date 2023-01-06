@@ -11,7 +11,6 @@ from fastapi import HTTPException, status, Depends, Header
 from jose import JWTError, ExpiredSignatureError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import with_polymorphic, selectin_polymorphic
 
 
 class UserController:
@@ -37,13 +36,12 @@ class UserController:
     def _get_password_hash(self, password):
         return self.pwd_context.hash(password)
 
-    def _find_user_by_username(self, username):
+    def _find_user_by_username(self, username, session: Session = None):
 
-        db_user = (
-            self.session.query(User)
-            .filter(User.username == username)
-            .first()
-        )
+        if session:
+            self.session = session
+
+        db_user = self.session.query(User).filter(User.username == username).first()
 
         if db_user:
             return db_user
@@ -85,7 +83,7 @@ class UserController:
     def _get_user_by_email(self, email):
         return self.session.query(self.model).filter(self.model.email == email).first()
 
-    def _get_user(self, token: str) -> User | None:
+    def _get_user(self, token: str, session: Session = None) -> User | None:
 
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -110,7 +108,7 @@ class UserController:
         except JWTError:
             raise credentials_exception
 
-        user = self._find_user_by_username(username)
+        user = self._find_user_by_username(username, session)
 
         return user
 

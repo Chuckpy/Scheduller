@@ -1,43 +1,17 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
-from sqlalchemy_utils import UUIDType
+from database.base_model import BaseModel
+from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-from uuid import uuid4
 
 from core.apps.tasks.models import Task
 from core.apps.cash_flow.models import CashFlow
-
-from database.base_class import Base
-
+from core.apps.chat.models import Message, Room
 
 
-class User(Base):
-
+class User(BaseModel):
+    
     __tablename__ = "users"
 
-    id = Column(
-        UUIDType(binary=False),
-        primary_key=True,
-        default=uuid4()
-    )
-
-    is_active = Column(Boolean, default=True)
-
-    created = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-        )
-
-    updated = Column(
-        DateTime(timezone=True), 
-        onupdate=func.now()
-        )
-
-    username = Column(
-        String(255), 
-        unique=True, 
-        nullable=False
-        )
+    username = Column(String(255), unique=True, nullable=False)
 
     first_name = Column(String(255))
 
@@ -47,16 +21,9 @@ class User(Base):
 
     hashed_password = Column(String(255))
 
-    email = Column(
-        String(255), 
-        unique=True, 
-        nullable=False
-        )
+    email = Column(String(255), unique=True, nullable=False)
 
-    group_id = Column(
-        ForeignKey("auth_group.id"),
-        nullable=True
-        )
+    group_id = Column(ForeignKey("auth_group.id"), nullable=True)
 
     group = relationship("Group", backref="users", foreign_keys=[group_id])
 
@@ -74,11 +41,24 @@ class User(Base):
         foreign_keys=[CashFlow.user_id],
     )
 
+    messages = relationship(
+        "Message",
+        back_populates="user",
+        cascade="all, delete",
+        foreign_keys=[Message.user_id],
+    )
+
+    rooms = relationship(
+        "Room",
+        back_populates="user",
+        cascade="all, delete",
+        foreign_keys=[Room.user_id],
+    )
+
     def __str__(self):
         return f"#{self.id} - {self.first_name}"
 
     def __repr__(self):
         return f"#{self.id} - {self.first_name}"
 
-    __mapper_args__ = {
-    }
+    __mapper_args__ = {}

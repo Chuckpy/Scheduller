@@ -1,31 +1,10 @@
-from sqlalchemy import Column, String, DateTime, Boolean
-from sqlalchemy_utils import UUIDType
-from sqlalchemy.sql import func
-from uuid import uuid4
-from database.base_class import Base
+from sqlalchemy import Column, String
+from database.base_model import BaseModel
 
 
-class Group(Base):
+class Group(BaseModel):
 
     __tablename__ = "auth_group"
-
-    id = Column(
-        UUIDType(binary=False),
-        primary_key=True,
-        default=uuid4()
-    )
-
-    created = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-        )
-
-    updated = Column(
-        DateTime(timezone=True), 
-        onupdate=func.now()
-        )
-
-    is_active = Column(Boolean, default=True)
 
     name = Column(String(255))
 
@@ -35,5 +14,4 @@ class Group(Base):
     def __repr__(self):
         return f"Group {self.name}"
 
-    __mapper_args__ = {
-    }
+    __mapper_args__ = {}

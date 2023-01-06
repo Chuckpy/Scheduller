@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 080471dd164c
+Revision ID: 7e99bc490ce1
 Revises: 
-Create Date: 2023-01-05 13:16:17.165827
+Create Date: 2023-01-06 13:23:59.695378
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy_utils.types.uuid import UUIDType
 
 # revision identifiers, used by Alembic.
-revision = '080471dd164c'
+revision = '7e99bc490ce1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,9 +36,9 @@ def upgrade() -> None:
     )
     op.create_table('users',
     sa.Column('id', UUIDType(binary=False), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('username', sa.String(length=255), nullable=False),
     sa.Column('first_name', sa.String(length=255), nullable=True),
     sa.Column('last_name', sa.String(length=255), nullable=True),
@@ -50,6 +50,17 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')
+    )
+    op.create_table('chat_room',
+    sa.Column('id', UUIDType(binary=False), nullable=False),
+    sa.Column('created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('name', sa.String(length=255), nullable=True),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('user_id', UUIDType(binary=False), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('core_cash_flow',
     sa.Column('id', UUIDType(binary=False), nullable=False),
@@ -76,6 +87,18 @@ def upgrade() -> None:
     sa.Column('description', sa.String(length=255), nullable=False),
     sa.Column('task_group_id', UUIDType(binary=False), nullable=True),
     sa.ForeignKeyConstraint(['task_group_id'], ['task_group.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('chat_message',
+    sa.Column('id', UUIDType(binary=False), nullable=False),
+    sa.Column('created', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('room_id', UUIDType(binary=False), nullable=False),
+    sa.Column('content', sa.String(length=255), nullable=True),
+    sa.Column('user_id', UUIDType(binary=False), nullable=False),
+    sa.ForeignKeyConstraint(['room_id'], ['chat_room.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -117,8 +140,10 @@ def downgrade() -> None:
     op.drop_table('list_text_line')
     op.drop_table('text_line')
     op.drop_table('list')
+    op.drop_table('chat_message')
     op.drop_table('task')
     op.drop_table('core_cash_flow')
+    op.drop_table('chat_room')
     op.drop_table('users')
     op.drop_table('task_group')
     op.drop_table('auth_group')
