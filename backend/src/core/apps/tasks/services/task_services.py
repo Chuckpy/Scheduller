@@ -13,6 +13,8 @@ from core.schemas.task_schema import (
 from fastapi import Request, Depends, Header, HTTPException
 from database.db import get_session
 from sqlalchemy.orm import Session
+from uuid import uuid4, UUID
+
 
 
 class TaskPaged(PageSchema):
@@ -41,7 +43,7 @@ class TaskController(UserController):
         self.page = page
         self._paginator = Paginator
 
-    def get_task(self, task_id: int = None):
+    def get_task_by_id(self, task_id: int = None):
 
         task = self.session.query(self.model).filter(self.model.id == task_id).first()
 
@@ -50,10 +52,10 @@ class TaskController(UserController):
 
         raise HTTPException(status_code=404, detail="Task not found")
 
-    def get_retail_task(self, task: Task | int = False):
+    def get_retail_task(self, task: Task | UUID = False):
 
-        if type(task) == int:
-            task = self.get_task(task)
+        if type(task) == UUID:
+            task = self.get_task_by_id(task)
 
         task_detailed = TaskDisplaySchema.parse_obj(task.__dict__)
         task_detailed.lists = [
@@ -106,6 +108,7 @@ class TaskController(UserController):
 
         for list_text_line in list_text_line_form:
             list_text_line["list_id"] = list_id
+            list_text_line["id"] = uuid4()
             db_list_text_line = ListTextLine(**list_text_line)
             self.session.add(db_list_text_line)
             self.session.commit()
@@ -126,6 +129,7 @@ class TaskController(UserController):
                 self.list_text_lines = list.pop("list_text_lines")
 
             list["task_id"] = task_id
+            list["id"] = uuid4()
             db_list = List(**list)
             self.session.add(db_list)
             self.session.commit()
@@ -144,6 +148,7 @@ class TaskController(UserController):
         text_lines = []
         for text_line in text_line_form:
             text_line["task_id"] = task_id
+            text_line["id"] = uuid4()
             db_text_line = TextLine(**text_line)
             self.session.add(db_text_line)
             self.session.commit()
@@ -162,6 +167,7 @@ class TaskController(UserController):
         task_form_dict = task_form.dict(exclude_none=True)
         to_return = task_form_dict.copy()
         task_form_dict["user_id"] = user_id
+        task_form_dict["id"] = uuid4()
 
         if "text_lines" in task_form_dict.keys():
             self.text_lines = task_form_dict.pop("text_lines")
@@ -181,11 +187,11 @@ class TaskController(UserController):
         if self.lists:
             self.create_lists(self.lists, db_task.id, user_id)
 
-        return to_return
+        return self.get_retail_task(db_task.id)
 
     def update_task(self, task_id: int, task_form: TaskBaseSchema):
 
-        task = self.get_task(task_id)
+        task = self.get_task_by_id(task_id)
 
         task_form_dict = task_form.dict(exclude_none=True)
 

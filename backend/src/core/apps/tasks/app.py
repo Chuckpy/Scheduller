@@ -39,4 +39,4 @@ async def update_task(
 @router.post("/")
 async def create_task(task_form: TaskCreateSchema, tc: TaskController = Depends()):
     task = tc.create_task(task_form)
-    return task  # TODO schema to display
+    return task

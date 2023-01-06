@@ -1,14 +1,15 @@
 from datetime import datetime, date
 from pydantic import BaseModel
+from uuid import UUID
 
 
 class TaskSchema(BaseModel):
-    id: int = None
+    id: UUID = None
     description: str
 
 
 class ListTextLineSchema(BaseModel):
-    list_id: int | None
+    list_id: UUID | None
     content: str
     status: bool = False
 
@@ -17,7 +18,7 @@ class ListTextLineSchema(BaseModel):
 
 
 class ListSchema(BaseModel):
-    task_id: int | None
+    task_id: UUID | None
     list_text_lines: list[ListTextLineSchema] = None
 
     class Config:
@@ -25,7 +26,7 @@ class ListSchema(BaseModel):
 
 
 class TextLineSchema(BaseModel):
-    task_id: int | None
+    task_id: UUID | None
     content: str
 
     class Config:
